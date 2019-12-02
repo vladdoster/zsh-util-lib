@@ -31,13 +31,23 @@ for map ( $maps ) {
 
         (( !Bound[${option_key_widget[3]}] )) && {
             Bound[${option_key_widget[3]}]=1
-            eval "function :util-lib-${option_key_widget[3]}-fun {
-                $ADDED_BLOCK
-                ${${(M)DO_FORWARD:#(1|yes|on|true)}:+zle orig-util-lib-${option_key_widget[3]} \"\$@\"}
-                $ADDED_BLOCK_AFTER
-            }"
-
-            zle -N -- orig-util-lib-${option_key_widget[3]} ${widgets[${option_key_widget[3]}]#*:}
+            local funstr="function :util-lib-${option_key_widget[3]}-fun {
+                    $ADDED_BLOCK";
+            if [[ -n ${${(M)DO_FORWARD:#(1|yes|on|true)}:+1} ]]; then
+                funstr+="
+                    if (( \${+widgets[orig-util-lib-${option_key_widget[3]}]} )); then
+                        zle orig-util-lib-${option_key_widget[3]} \"\$@\"
+                    else
+                        zle .${option_key_widget[3]} \"\$@\"
+                    fi"
+                funstr+="
+                    $ADDED_BLOCK_AFTER
+                }";
+                eval $funstr;
+            fi
+            if [[ ${widgets[${option_key_widget[3]}]} != builtin ]]; then
+                zle -N -- orig-util-lib-${option_key_widget[3]} ${widgets[${option_key_widget[3]}]#*:}
+            fi
         }
         zle -N -- ${option_key_widget[3]} :util-lib-${option_key_widget[3]}-fun
         eval "bindkey ${option_key_widget[1]} -M $map -- ${option_key_widget[2]} ${option_key_widget[3]}"

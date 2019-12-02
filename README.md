@@ -19,7 +19,7 @@ It's a counterpart to the
 ### @util-bind-all
 
 Rebinds all key bindings so that they're executing some custom code. It's an
-alternative to overloading of all Zle widgets. It's twice as fast method.
+alternative to overloading of all Zle widgets.
 
 Arguments:
 

@@ -7,11 +7,17 @@ local ADDED_BLOCK=$1 DO_FORWARD=$2 ADDED_BLOCK_AFTER=$3
 
 local -a maps
 maps=( "${(@f)$( bindkey -l )}" )
+maps=( "${maps[@]:#(.safe|menuselect)}" )
 
 local map
 for map ( $maps ) {
     local -a binds
     binds=( "${(@f)$( bindkey -M $map -L )//-M [^[:blank:]]##/}" )
+    # Normalize the options and remove -a
+    binds=( "${binds[@]/bindkey[[:blank:]]##-a[[:blank:]]##/bindkey }" )
+    binds=( "${binds[@]/bindkey[[:blank:]]##-s[[:blank:]]##-a[[:blank:]]##/bindkey -s }" )
+    binds=( "${binds[@]/bindkey[[:blank:]]##-R[[:blank:]]##-a[[:blank:]]##/bindkey -R }" )
+    binds=( "${binds[@]/bindkey[[:blank:]]##-R[[:blank:]]##-s[[:blank:]]##(-a[[:blank:]]##|)/bindkey -Rs }" )
 
     local bind
     local -A Bound
@@ -21,6 +27,7 @@ for map ( $maps ) {
         option_key_widget[1]=()
 
         [[ $option_key_widget[1] != -* ]] && option_key_widget[1,0]=( "" )
+        [[ $option_key_widget[1] == -- ]] && option_key_widget[1]=""
 
         (( !Bound[${option_key_widget[3]}] )) && {
             Bound[${option_key_widget[3]}]=1
@@ -33,6 +40,6 @@ for map ( $maps ) {
             zle -N -- orig-bw-${option_key_widget[3]} ${widgets[${option_key_widget[3]}]#*:}
         }
         zle -N -- ${option_key_widget[3]} ${option_key_widget[3]}-fun
-        eval "bindkey ${option_key_widget[1]} -M $map ${option_key_widget[2]} ${option_key_widget[3]}"
+        eval "bindkey ${option_key_widget[1]} -M $map -- ${option_key_widget[2]} ${option_key_widget[3]}"
     }
 }

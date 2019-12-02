@@ -24,7 +24,7 @@ alternative to overloading of all Zle widgets.
 Arguments:
 
 1. The custom snippet of code to run before executing the original widget.
-2. A bool (`1`,`yes`,`true` for truth or other value for false) indicating
+2. A bool (`1`,`yes`,`true`,`on` for truth or other value for false) indicating
    whether the widget calls should be automatically forwarded to their original
    (before-binding) versions.
 3. An optional custom snippet of code to be executed **after** executing the

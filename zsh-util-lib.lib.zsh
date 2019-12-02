@@ -17,4 +17,6 @@ fi
 
 typeset -g ZSH_UTIL_LIB_DIR=${0:h}
 
+autoload @util-bind-all
+
 # vim:ft=zsh:sw=4:sts=4:et

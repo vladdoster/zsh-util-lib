@@ -1,0 +1,38 @@
+#!/usr/bin/env zsh
+
+emulate -LR zsh -o extended_glob -o warn_create_global -o typeset_silent \
+    -o no_short_loops -o rc_quotes
+
+local ADDED_BLOCK=$1 DO_FORWARD=$2 ADDED_BLOCK_AFTER=$3
+
+local -a maps
+maps=( "${(@f)$( bindkey -l )}" )
+
+local map
+for map ( $maps ) {
+    local -a binds
+    binds=( "${(@f)$( bindkey -M $map -L )//-M [^[:blank:]]##/}" )
+
+    local bind
+    local -A Bound
+    for bind ( $binds ) {
+        local -a option_key_widget
+        option_key_widget=( "${(@z)bind}" )
+        option_key_widget[1]=()
+
+        [[ $option_key_widget[1] != -* ]] && option_key_widget[1,0]=( "" )
+
+        (( !Bound[${option_key_widget[3]}] )) && {
+            Bound[${option_key_widget[3]}]=1
+            eval "function ${option_key_widget[3]}-fun {
+                $ADDED_BLOCK
+                ${${(M)DO_FORWARD:#(1|yes|on|true)}:+zle orig-bw-${option_key_widget[3]} \"\$@\"}
+                $ADDED_BLOCK_AFTER
+            }"
+
+            zle -N -- orig-bw-${option_key_widget[3]} ${widgets[${option_key_widget[3]}]#*:}
+        }
+        zle -N -- ${option_key_widget[3]} ${option_key_widget[3]}-fun
+        eval "bindkey ${option_key_widget[1]} -M $map ${option_key_widget[2]} ${option_key_widget[3]}"
+    }
+}

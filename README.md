@@ -1,3 +1,13 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [zsh-util-lib](#zsh-util-lib)
+  - [List Of The Functions](#list-of-the-functions)
+    - [@util-bind-all](#util-bind-all)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # zsh-util-lib
 
 An utility-library for Zshell that provides a few general-purpose functions.

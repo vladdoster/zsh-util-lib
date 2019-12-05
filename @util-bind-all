@@ -3,11 +3,14 @@
 emulate -LR zsh
 setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes
 
-local ADDED_BLOCK=$1 DO_FORWARD=$2 ADDED_BLOCK_AFTER=$3
+local ADDED_BLOCK=$1 DO_FORWARD=$2 ADDED_BLOCK_AFTER=$3 \
+    METHOD=$4 # either: bindkey, zle-N
 
-local -a maps
+local -a maps linked_main_maps
 maps=( "${(@f)$( bindkey -l )}" )
 maps=( "${maps[@]:#(.safe|menuselect)}" )
+linked_main_maps=( "${(@)${(@f)$( bindkey -lL main )}/(#m)*/${${(@z)MATCH}[3]}}" )
+maps=( ${maps:|linked_main_maps} )
 
 local map
 for map ( $maps ) {
@@ -29,14 +32,16 @@ for map ( $maps ) {
         [[ $option_key_widget[1] != -* ]] && option_key_widget[1,0]=( "" )
         [[ $option_key_widget[1] == -- ]] && option_key_widget[1]=""
 
-        (( !Bound[${option_key_widget[3]}] )) && {
+        [[ ${option_key_widget[3]} != (orig-|)util-lib-* ]] && \
+            (( !Bound[${option_key_widget[3]}] )) && \
+        {
             Bound[${option_key_widget[3]}]=1
-            local funstr="function :util-lib-${option_key_widget[3]}-fun {
+            local funstr="function :util-lib-${option_key_widget[3]}-func {
                     $ADDED_BLOCK";
             if [[ -n ${${(M)DO_FORWARD:#(1|yes|on|true)}:+1} ]]; then
                 funstr+="
-                    if (( \${+widgets[orig-util-lib-${option_key_widget[3]}]} )); then
-                        zle orig-util-lib-${option_key_widget[3]} \"\$@\"
+                    if (( \${+widgets[${${(M)METHOD:#zle-N}:+orig-util-lib-}${option_key_widget[3]}]} )); then
+                        zle ${${(M)METHOD:#zle-N}:+orig-util-lib-}${option_key_widget[3]} \"\$@\"
                     else
                         zle .${option_key_widget[3]} \"\$@\"
                     fi"
@@ -45,11 +50,16 @@ for map ( $maps ) {
                 }";
                 eval $funstr;
             fi
-            if [[ ${widgets[${option_key_widget[3]}]} != builtin ]]; then
+            if [[ $METHOD = zle-N && ${widgets[${option_key_widget[3]}]} != builtin ]]; then
                 zle -N -- orig-util-lib-${option_key_widget[3]} ${widgets[${option_key_widget[3]}]#*:}
             fi
         }
-        zle -N -- ${option_key_widget[3]} :util-lib-${option_key_widget[3]}-fun
-        eval "bindkey ${option_key_widget[1]} -M $map -- ${option_key_widget[2]} ${option_key_widget[3]}"
+        (( !Bound[${option_key_widget[3]}-2] )) && {
+            Bound[${option_key_widget[3]}-2]=1
+            zle -N -- ${${(M)METHOD:#bindkey}:+util-lib-}${option_key_widget[3]} :util-lib-${option_key_widget[3]}-func
+        }
+
+        [[ $METHOD = bindkey ]] && \
+            eval "bindkey ${option_key_widget[1]} -M $map -- ${option_key_widget[2]} util-lib-${option_key_widget[3]#util-lib-}"
     }
 }

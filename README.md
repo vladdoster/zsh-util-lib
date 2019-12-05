@@ -29,6 +29,12 @@ Arguments:
    (before-binding) versions.
 3. An optional custom snippet of code to be executed **after** executing the
    original widget.
+4. A method of the binding – either `bindkey` or `zle-N`. The first one is fully
+   bindkey based, i.e.: e.g.: it doesn't create the backup widgets that are
+   typically prefixed with "orig–". The second is half-bindkey / half-zle -N
+   based - it does create the backup widgets, however the widgets are obtained
+   using `bindkey` listing invocation, which means that typically only a half of
+   all widgets are bound.
 
 Example:
 
